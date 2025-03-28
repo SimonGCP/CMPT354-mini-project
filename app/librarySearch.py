@@ -6,22 +6,12 @@ It can be accessed by users that are logged in or not logged in, and
 can be used to sign out books.
 '''
 
-from datetime import datetime
-import re as regex
+from utils import isValidDate
 
 class LibrarySearch:
     def __init__(self, con):
         self.searchTerms = {}
         self.con = con
-
-    # checks to see if a string in format "YYYY-MM-DD" is a valid date
-    def isValidDate(self, dateString):
-        try:
-            dateRegex = r"^(?:19|20)\d{2}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$"
-            datetime.strptime(dateString, "%Y-%m-%d")
-            return bool(regex.match(dateRegex, dateString))
-        except ValueError:
-            return False
 
     # Used to allow users to input search terms to search the library database
     def gatherSearchTerms(self):
@@ -76,21 +66,21 @@ class LibrarySearch:
 
                 dateSearchInput = ""
                 if dateSearchType == '1' or dateSearchType == '3': # SEARCH BY EARLIEST PUBLICATION 
-                    while not self.isValidDate(dateSearchInput) or dateSearchInput == 'cancel':
+                    while not isValidDate(dateSearchInput) or dateSearchInput == 'cancel':
                         print("Enter earliest date in format YYYY-MM-DD")
                         print("Type 'cancel' to cancel")
                         dateSearchInput = input("> ")
                         self.searchTerms["dates"].append(("after", dateSearchInput))
-                        if not self.isValidDate(dateSearchInput):
+                        if not isValidDate(dateSearchInput):
                             print("Invalid date")
                     dateSearchInput = ""
                 if dateSearchType == '2' or dateSearchType == '3': # SEARCH BY LATEST PUBLICATION
-                    while not self.isValidDate(dateSearchInput) or dateSearchInput == 'cancel':
+                    while not isValidDate(dateSearchInput) or dateSearchInput == 'cancel':
                         print("Enter latest date in format YYYY-MM-DD")
                         print("Type 'cancel' to cancel")
                         dateSearchInput = input("> ")
                         self.searchTerms["dates"].append(("before", dateSearchInput))
-                        if not self.isValidDate(dateSearchInput):
+                        if not isValidDate(dateSearchInput):
                             print("Invalid date")
                     dateSearchInput = ""
 
@@ -128,7 +118,7 @@ class LibrarySearch:
             return None
 
         cursor = self.con.cursor()
-        query = "SELECT * FROM LibraryItem WHERE "
+        query = "SELECT itemID, title, type, publicationDate, authorFirstName, authorLastName FROM LibraryItem WHERE "
 
         # Append search terms to query
         for key in self.searchTerms:
@@ -173,16 +163,14 @@ class LibrarySearch:
                 query += ')'
             query += " AND "
 
-        query = query[:-5] + ';'
-        print(query)
+        query = query[:-5] + 'AND isFutureAcq=0;'
         res = cursor.execute(query)
-        print(res)
 
         results = []
         print()
-        for row in res:
-            print(row)
-            results.append(row)
+        for itemID, title, type, publicationDate, authorFirstName, authorLastName in res:
+            print(f'{itemID}:{title} - {authorLastName}, {authorFirstName} - Published on {publicationDate}')
+            results.append([itemID, title, type, publicationDate, authorFirstName, authorLastName])
 
         if len(results) == 0:
             print("No matching records found.")

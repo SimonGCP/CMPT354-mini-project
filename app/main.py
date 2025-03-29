@@ -23,6 +23,7 @@ import sqlite3
 from librarySearch import LibrarySearch
 from login import Login
 from loan import Loan
+from register import Registration
 
 # connection to database
 con = sqlite3.connect("../db/library2.db")
@@ -33,6 +34,7 @@ loggedIn = False
 account = None
 librarySearch = LibrarySearch(con)
 loanSystem = Loan(con)
+registrationSystem = Registration(con)
 
 while running:
     print("Enter 1 to search library database")
@@ -72,6 +74,22 @@ while running:
                     print("You have admin privileges")
                 loggedIn = True
                 print()
+
+        elif userInput == '3': # register 
+            firstName = input("Enter your first name: ").strip()
+            lastName = input("Enter your last name: ").strip()
+            address = input("Enter your address: ").strip()
+            email = input("Enter your email: ").strip()
+            phoneNumber = input("Enter your phone number: ").strip()
+
+            # -1 will generate a card number
+            cardNumber = registrationSystem.registerUser(-1, firstName, lastName, address, email, phoneNumber)
+            if (cardNumber):
+                print("Registration Complete, your name number is: " + str(cardNumber))
+            else:
+                print("something went wrong :(")
+            
+
     elif loggedIn:
         if account is None:
             print("Something went wrong")

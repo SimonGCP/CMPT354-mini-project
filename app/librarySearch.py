@@ -118,7 +118,13 @@ class LibrarySearch:
             return None
 
         cursor = self.con.cursor()
-        query = "SELECT itemID, title, type, publicationDate, authorFirstName, authorLastName FROM LibraryItem WHERE "
+        query = '''
+            SELECT LibraryItem.itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate
+            FROM LibraryItem 
+            JOIN Loan
+            ON Loan.itemID=LibraryItem.itemID
+            WHERE 
+        '''
 
         # Append search terms to query
         for key in self.searchTerms:
@@ -168,8 +174,14 @@ class LibrarySearch:
 
         results = []
         print()
-        for itemID, title, type, publicationDate, authorFirstName, authorLastName in res:
-            print(f'{itemID}:{title} - {authorLastName}, {authorFirstName} - Published on {publicationDate}')
+        for itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate in res:
+            msg = f'{itemID}:{title} - {authorLastName}, {authorFirstName} - Published on {publicationDate} '
+            if returnDate is None:
+                msg += '- This item is available'
+            else:
+                msg += f'- This item is not available, due date {returnDate}'
+
+            print(msg)
             results.append([itemID, title, type, publicationDate, authorFirstName, authorLastName])
 
         if len(results) == 0:

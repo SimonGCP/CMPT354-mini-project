@@ -151,14 +151,9 @@ while running:
                     selectedChoice = input('> ').strip().lower()    
 
                 if selectedChoice == '1': # Return an item
-                    print(selectedLoan)
                     loanSystem.returnItem(account.cardNumber, selectedLoan[0], selectedLoan[2])
                 elif selectedChoice == '2': # Renew an item
-                    print("Your item has successfully been renewed for 1 week")
-
-
-
-
+                    loanSystem.renewItem(account.cardNumber, selectedLoan[0])
 
 
         elif userInput == '5': # upcoming library events
@@ -182,8 +177,6 @@ while running:
 
         elif userInput == '6': # donate item to library
             pass
-
-
 
         if account.hasPrivileges:
             if userInput == '7': # search transaction history

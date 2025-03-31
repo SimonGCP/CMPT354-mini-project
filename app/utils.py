@@ -20,6 +20,11 @@ def getCurDateTime():
 def getTodayPlusN(n):
     return (datetime.now() + timedelta(days=n)).strftime('%Y-%m-%d')
 
+# Add n days to the date passed in format 'YYYY-MM-DD'
+def getDayPlusN(day, n):
+    datetimeObj = datetime.strptime(day, '%Y-%m-%d')
+    return (datetimeObj + timedelta(days=n)).strftime('%Y-%m-%d')
+
 # checks to see if a string in format "YYYY-MM-DD" is a valid date
 def isValidDate(dateString):
     try:

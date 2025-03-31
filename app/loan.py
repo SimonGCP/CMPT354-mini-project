@@ -6,7 +6,7 @@ It contains the logic for making new loans, returning,
 and renewing loans.
 '''
 
-from utils import getCurDate, getTodayPlusN
+from utils import getCurDate, getTodayPlusN, getDayPlusN
 
 class Loan:
     def __init__(self, con):
@@ -64,7 +64,7 @@ class Loan:
             AND itemID=?
             AND loanDateTime=?
         '''
-        print("returning on date", getCurDate())
+        print("Successfully returned on date", getCurDate())
         cursor.execute(query, (getCurDate(), libraryCardNumber, itemID, loanDateTime))
         self.con.commit()
 
@@ -77,8 +77,46 @@ class Loan:
             VALUES (?, ?, ?)
         '''
 
-        loanDateTime = getCurDate()
         loanDueDate = getTodayPlusN(14) 
         cursor.execute(query, (libraryCardNumber, itemID, loanDueDate))
 
         self.con.commit()
+
+    def renewItem(self, libraryCardNumber, itemID):
+        cursor = self.con.cursor()
+
+        query = '''
+            SELECT dueDate, loanDateTime, renewalCount, MAX(loanDateTime)
+            FROM Loan
+            WHERE loanCard=? AND itemID=?
+            GROUP BY itemID, loanCard
+        '''
+
+        res = cursor.execute(query, (libraryCardNumber, itemID))
+
+        foundRecord = {} 
+        for dueDate, loanDateTime, renewalCount, _ in res:
+            foundRecord = {
+                "dueDate": dueDate,
+                "loanDateTime": loanDateTime,
+                "renewalCount": renewalCount
+            }
+
+        if not foundRecord:
+            return
+
+        renewalLength = 7
+        if int(foundRecord["renewalCount"]) >= 2:
+            print('\nYou cannot renew a record more than 2 times.\n')
+            return
+    
+        newDueDate = getDayPlusN(foundRecord['dueDate'], renewalLength)
+        query = '''
+            UPDATE Loan
+            SET dueDate=?, renewalCount=?
+            WHERE loanCard=? AND loanDateTime=?
+        '''
+        cursor.execute(query, (newDueDate, int(foundRecord["renewalCount"])+1, libraryCardNumber, foundRecord["loanDateTime"]))
+        self.con.commit()
+        print(f"\nSuccessfully renewed this record for {renewalLength} days")
+        print(f"Item is now due on {newDueDate}")

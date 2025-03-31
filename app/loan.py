@@ -82,6 +82,8 @@ class Loan:
         cursor.execute(query, (libraryCardNumber, itemID, loanDueDate))
 
         self.con.commit()
+        print("\nYou have successfully signed out this item")
+        print("It is due on", loanDueDate, '\n')
 
     def renewItem(self, libraryCardNumber, itemID):
         cursor = self.con.cursor()

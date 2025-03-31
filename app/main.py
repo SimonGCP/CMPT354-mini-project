@@ -53,7 +53,7 @@ while running:
         print("Enter 6 to donate an item to the library")
         if account.hasPrivileges:
             print("Press 7 to search transaction history")
-            print("Press 8 to create an event in a social room")
+            print("Press 8 to organize an event in a social room")
     print('Enter "exit" to leave')
 
     userInput= input("> ").strip().lower()
@@ -67,10 +67,11 @@ while running:
                 signOutRequest = librarySearch.signOutPrompt(records)
 
                 # return date is None if the item is not available i.e. someone has loaned it and not yet returned it
-                if signOutRequest and signOutRequest[6] is None:
-                    print("This item is not available right now.")
+                # or if it hasn't been loaned before
+                if signOutRequest and (signOutRequest["returnDate"] is not None or signOutRequest["dueDate"] is None):
+                    loanSystem.signOutItem(account.cardNumber, signOutRequest["itemID"])
                 elif signOutRequest:
-                    loanSystem.signOutItem(account.cardNumber, signOutRequest[0])
+                    print("This item is not available right now.")
             elif not loggedIn:
                 print("Sign in or create a membership to sign out books")
 
@@ -198,7 +199,7 @@ while running:
 
 
         elif userInput == '6': # donate item to library
-            pass
+            librarySearch.donateBook()
 
         elif account.hasPrivileges:
             if userInput == '7': # search transaction history

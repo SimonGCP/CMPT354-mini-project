@@ -1,9 +1,9 @@
 '''
 librarySearch.py
 
-This file contains the logic for searching the library's item database.
+This file contains the logic for managing the library's item database.
 It can be accessed by users that are logged in or not logged in, and 
-can be used to sign out books.
+can be used to sign out or donate books.
 '''
 
 from utils import isValidDate
@@ -170,21 +170,31 @@ class LibrarySearch:
             query += " AND "
 
         query = query[:-5] + 'AND isFutureAcq=0 GROUP BY LibraryItem.itemID;'
+        print(query)
         res = cursor.execute(query)
 
         results = []
         print()
         print("Found records:")
         i = 1 
-        for itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate, dueDate, _ in res:
+        for itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate, dueDate, lastLoan in res:
             msg = f'Index {i}. ID: {itemID} - {title} - {authorLastName}, {authorFirstName} - Published on {publicationDate} '
-            if returnDate is not None:
+            if returnDate is not None or dueDate is None:
                 msg += '- This item is available'
             else:
                 msg += f'- This item is not available, due date {dueDate}'
 
             print(msg)
-            results.append([itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate, dueDate])
+            results.append({
+                "itemID": itemID,
+                "title": title,
+                "type": type,
+                "publicationDate": publicationDate,
+                "authorFirstName": authorFirstName,
+                "authorLastName": authorLastName,
+                "returnDate": returnDate,
+                "dueDate": dueDate
+            })
             i += 1
 
         if len(results) == 0:
@@ -206,12 +216,19 @@ class LibrarySearch:
             isValid = False
             while not isValid:
                 i = 1
-                for itemID, title, _, publicationDate, authorFirstName, authorLastName, returnDate, dueDate in records:
+                for record in records:
+                    itemID = record["itemID"]
+                    title = record["title"]
+                    authorLastName = record["authorLastName"]
+                    authorFirstName = record["authorFirstName"]
+                    returnDate = record["returnDate"]
+                    dueDate = record["dueDate"]
+                    publicationDate = record["publicationDate"]
                     msg = f'Index {i}. {itemID}:{title} - {authorLastName}, {authorFirstName} - Published on {publicationDate} '
-                    if returnDate is not None:
+                    if returnDate is not None or dueDate is None:
                         msg += '- This item is available'
                     else:
-                        msg += f'- This item is not available, due date {returnDate}'
+                        msg += f'- This item is not available, due date {dueDate}'
 
                     print(msg)
                     i += 1
@@ -223,5 +240,75 @@ class LibrarySearch:
                     return None
 
             return records[int(userChoice)-1]
-        
 
+    # Allows the user to donate an item to the library
+    def donateBook(self):
+        pubType = ""
+        while pubType not in ["book", "journal", "magazine", "cancel"]:
+            print("What type of record would you like to donate? (book, record, journal), type 'cancel' to cancel")
+            pubType = input("> ").strip()
+            if pubType not in ["book", "journal", "magazine", "cancel"]:
+                print("Invalid item type")
+
+        if pubType == 'cancel':
+            return
+
+        print("Enter the title of the item you would like to donate, type 'cancel' to cancel")
+        title = input("> ").strip()
+        if title == 'cancel':
+            return
+
+        pubDate = ""
+        while not isValidDate(pubDate):
+            print("Enter the publication date of the record in format 'YYYY-MM-DD' or type 'cancel' to cancel")
+            pubDate = input("> ").strip()
+            if not isValidDate(pubDate) and pubDate != 'cancel':
+                print("Invalid date entered")
+            if pubDate == 'cancel':
+                return
+        
+        print("Enter the first name of the author or type 'cancel' to cancel")
+        authorFirstName = input("> ").strip()
+        if authorFirstName == 'cancel':
+            return
+        print("Enter the last name of the author or type 'cancel' to cancel")
+        authorLastName = input("> ").strip()
+        if authorLastName == 'cancel':
+            return
+
+        print("You are about to donate the following record:")
+        print(f'"{title}" by {authorFirstName} {authorLastName}, published {pubDate}')
+
+        confirmation = ''
+        while confirmation not in ['y', 'n']:
+            print("Would you like to confirm this donation? (y/n)")
+            confirmation = input('> ').strip()
+
+        if confirmation == 'n':
+            return
+
+        # The item's ID should be 1 higher than the last item added to the database
+        query = '''
+            SELECT itemID
+            FROM LibraryItem
+            ORDER BY itemID DESC
+            LIMIT 1
+        '''
+
+        cursor = self.con.cursor()
+        itemID = -1
+        for row in cursor.execute(query):
+            print(row)
+            break
+
+        if itemID == -1:
+            print("Something went wrong trying to add the record to the DB")
+
+        query = '''
+            INSERT INTO LibraryItem(itemID, title, type, publicationDate, authorFirstName, authorLastName)
+            VALUES (?, ?, ?, ?, ?, ?)
+        '''
+        cursor.execute(query, (itemID, title, pubType.title(), pubDate, authorFirstName, authorLastName))
+        self.con.commit()
+
+        print('\nDonation successful. Thank you for your donation!')

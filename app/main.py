@@ -158,21 +158,24 @@ while running:
 
         elif userInput == '4': # See and handle fines
             userChoice = ""
-            while userChoice not in ["1", "cancel"]:
+            choices = ["1", "cancel"]
+            if account.hasPrivileges:
+                choices += ["2", "3"]
+
+            while userChoice not in choices: 
                 print("Enter 1 to see your fines")
                 if account.hasPrivileges:
                     print("Enter 2 to clear a fine")
+                    print("Enter 3 to see a user's fine history")
                 print("Enter 'cancel' to cancel")
                 userChoice = input('> ').strip().lower()
-
-                # users can only clear fines if they are administators
-                if userChoice == '2' and account.hasPrivileges:
-                    break
 
             if userChoice == "1":
                 fineSystem.viewAllOutstandingFines(account.cardNumber)
             elif userChoice == "2": # only possible for system administrators
                 fineSystem.clearFineInterface()
+            elif userChoice == "3":
+                fineSystem.seeFineHistory()
             
 
         elif userInput == '5': # upcoming library events

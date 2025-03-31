@@ -128,3 +128,54 @@ class Fine:
 
         print("\nThe user has cleared all of their fines.\n")
 
+    # Allow system admins to see past fines
+    def seeFineHistory(self):
+        cursor = self.con.cursor()
+        libraryCard = ""
+        while not libraryCard.isdigit():
+            print("Enter the library card number of the user you would like to see fines")
+            libraryCard = input('> ')
+
+        # First make sure the user exists
+        query = '''
+            SELECT firstName, lastName
+            FROM User
+            WHERE libraryCardNumber=?
+        '''
+
+        firstName = ""
+        lastName = ""
+        userExists = False
+        for row in cursor.execute(query, (libraryCard,)):
+            firstName = row[0]
+            lastName = row[1]
+            userExists = True
+
+        if not userExists:
+            print("\nNo user found with desired library card number\n")
+            return
+
+        print(f"\nFine history for {firstName} {lastName}")
+
+        # Get all fines for the user
+        query = '''
+            SELECT dateTimeIssued, amount, paid
+            FROM Fine
+            WHERE fineLibraryCard=?
+        '''
+
+        hasFines = False
+        for dateTimeIssued, amount, paid in cursor.execute(query, (libraryCard,)):
+            dollarAmount = '$' + '{0:.2f}'.format(amount)
+            msg = f"\tFine issued on {dateTimeIssued} for ${dollarAmount}"
+            if paid == 0:
+                msg += " - This fine is still outstanding"
+            else:
+                msg += " - This fine has been paid and cleared"
+
+            print(msg)
+            hasFines = True
+
+        if not hasFines:
+            print("This user has no fines on record.")
+        print()

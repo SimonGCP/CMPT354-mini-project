@@ -25,6 +25,7 @@ from login import Login
 from loan import Loan
 from register import Registration
 from event import Event
+from fine import Fine
 
 # connection to database
 con = sqlite3.connect("../db/library.db")
@@ -37,6 +38,7 @@ librarySearch = LibrarySearch(con)
 loanSystem = Loan(con)
 registrationSystem = Registration(con)
 eventSystem = Event(con)
+fineSystem = Fine(con)
 
 while running:
     print("Enter 1 to search library database and sign out records")
@@ -46,13 +48,12 @@ while running:
     elif account is not None:
         print("Enter 2 to sign out")
         print("Enter 3 to see, renew and return your loans")
-        print("Enter 4 to see and pay your overdue fees")
+        print("Enter 4 to manage overdue fees")
         print("Enter 5 to see upcoming library events")
         print("Enter 6 to donate an item to the library")
         if account.hasPrivileges:
             print("Press 7 to search transaction history")
-            print("Press 8 to clear a late fee")
-            print("Press 9 to create an event in a social room")
+            print("Press 8 to create an event in a social room")
     print('Enter "exit" to leave')
 
     userInput= input("> ").strip().lower()
@@ -155,6 +156,24 @@ while running:
                 elif selectedChoice == '2': # Renew an item
                     loanSystem.renewItem(account.cardNumber, selectedLoan[0])
 
+        elif userInput == '4': # See and handle fines
+            userChoice = ""
+            while userChoice not in ["1", "cancel"]:
+                print("Enter 1 to see your fines")
+                if account.hasPrivileges:
+                    print("Enter 2 to clear a fine")
+                print("Enter 'cancel' to cancel")
+                userChoice = input('> ').strip().lower()
+
+                # users can only clear fines if they are administators
+                if userChoice == '2' and account.hasPrivileges:
+                    break
+
+            if userChoice == "1":
+                fineSystem.viewAllOutstandingFines(account.cardNumber)
+            elif userChoice == "2": # only possible for system administrators
+                fineSystem.clearFineInterface()
+            
 
         elif userInput == '5': # upcoming library events
             print("Upcoming events:")
@@ -178,14 +197,11 @@ while running:
         elif userInput == '6': # donate item to library
             pass
 
-        if account.hasPrivileges:
+        elif account.hasPrivileges:
             if userInput == '7': # search transaction history
                 pass
 
-            if userInput == '8': # clear late fee
-                pass
-
-            if userInput == '9': # create event
+            if userInput == '8': # create event
                 #list out all the available rooms
                 
                 title = input("Enter Event title: ").strip()

@@ -64,6 +64,7 @@ class Loan:
             AND itemID=?
             AND loanDateTime=?
         '''
+
         print("Successfully returned on date", getCurDate())
         cursor.execute(query, (getCurDate(), libraryCardNumber, itemID, loanDateTime))
         self.con.commit()

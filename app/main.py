@@ -24,9 +24,10 @@ from librarySearch import LibrarySearch
 from login import Login
 from loan import Loan
 from register import Registration
+from event import Event
 
 # connection to database
-con = sqlite3.connect("../db/library2.db")
+con = sqlite3.connect("../db/library.db")
 
 print("Welcome to the library database!")
 running = True
@@ -35,6 +36,7 @@ account = None
 librarySearch = LibrarySearch(con)
 loanSystem = Loan(con)
 registrationSystem = Registration(con)
+eventSystem = Event(con)
 
 while running:
     print("Enter 1 to search library database")
@@ -140,6 +142,60 @@ while running:
                     loanSystem.returnItem(account.cardNumber, selectedLoan[0], selectedLoan[2])
                 elif selectedChoice == '2': # Renew an item
                     print("Your item has successfully been renewed for 1 week")
+
+
+
+
+
+
+        elif userInput == '5': # upcoming library events
+            print("Upcoming events:")
+            eventSystem.displayEvents()
+            print("Would you like to register/volunteer for an Event? (y/volunteer/n)")
+            userEventInput = input("> ").strip().lower()
+            if userEventInput == 'y' or userEventInput == "volunteer":
+                print("Enter Title of event")
+                selectedTitle = input("> ").strip()
+                print("Enter DateTime of event")
+                selectedDateTime = input("> ").strip()
+                if userEventInput == "y":
+                    if eventSystem.registerEvent(selectedTitle, selectedDateTime, account.cardNumber):
+                        print("You have register for " + selectedTitle + " at " + selectedDateTime)
+                else:
+                    if eventSystem.volunteerEvent(selectedTitle, selectedDateTime, account.cardNumber):
+                        print("You have volunteered for " + selectedTitle + " at " + selectedDateTime)
+
+
+
+        elif userInput == '6': # donate item to library
+            pass
+
+
+
+        if account.hasPrivileges:
+            if userInput == '7': # search transaction history
+                pass
+
+            if userInput == '8': # clear late fee
+                pass
+
+            if userInput == '9': # create event
+                #list out all the available rooms
+                
+                title = input("Enter Event title: ").strip()
+                dateTime = input("Enter Event dateTime (YYYY-MM-DD HH:MM:SS): ").strip()
+                roomNum = input("Enter room number: ").strip()
+                maxAttendees = input("Enter max number of Attendees: ").strip()
+                duration = input("Enter duration of event: ").strip()
+                deadline = input("Enter registration deadline (YYYY-MM-DD HH:MM:SS): ").strip()
+                desc = input("Enter Event description: ").strip()
+
+                #numAttendees is 0 by deafault
+                if eventSystem.addEvent(title, dateTime, roomNum, maxAttendees, duration, deadline, desc):
+                    print("Event has been created")
+                else:
+                    print("Failed to create Event")
+
 
 
     if userInput == 'exit':

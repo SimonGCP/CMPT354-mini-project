@@ -5,7 +5,7 @@ This file contains various useful helper functions to be
 used at various other points in the program.
 '''
 
-from datetime import datetime
+from datetime import datetime, timedelta
 import re as regex
 
 # Get the current date as a string in format 'YYYY-MM-DD'
@@ -15,6 +15,10 @@ def getCurDate():
 # Get the current date and time as a string in format 'YYYY-MM-DD HH:MM:SS'
 def getCurDateTime():
     return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+# Get the current date as a string n days from now
+def getTodayPlusN(n):
+    return (datetime.now() + timedelta(days=n)).strftime('%Y-%m-%d')
 
 # checks to see if a string in format "YYYY-MM-DD" is a valid date
 def isValidDate(dateString):

@@ -119,9 +119,9 @@ class LibrarySearch:
 
         cursor = self.con.cursor()
         query = '''
-            SELECT LibraryItem.itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate
+            SELECT LibraryItem.itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate, dueDate, MAX(Loan.loanDateTime)
             FROM LibraryItem 
-            JOIN Loan
+            LEFT OUTER JOIN Loan
             ON Loan.itemID=LibraryItem.itemID
             WHERE 
         '''
@@ -169,20 +169,23 @@ class LibrarySearch:
                 query += ')'
             query += " AND "
 
-        query = query[:-5] + 'AND isFutureAcq=0;'
+        query = query[:-5] + 'AND isFutureAcq=0 GROUP BY LibraryItem.itemID;'
         res = cursor.execute(query)
 
         results = []
         print()
-        for itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate in res:
-            msg = f'{itemID}:{title} - {authorLastName}, {authorFirstName} - Published on {publicationDate} '
-            if returnDate is None:
+        print("Found records:")
+        i = 1 
+        for itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate, dueDate, _ in res:
+            msg = f'Index {i}. ID: {itemID} - {title} - {authorLastName}, {authorFirstName} - Published on {publicationDate} '
+            if returnDate is not None:
                 msg += '- This item is available'
             else:
-                msg += f'- This item is not available, due date {returnDate}'
+                msg += f'- This item is not available, due date {dueDate}'
 
             print(msg)
-            results.append([itemID, title, type, publicationDate, authorFirstName, authorLastName])
+            results.append([itemID, title, type, publicationDate, authorFirstName, authorLastName, returnDate, dueDate])
+            i += 1
 
         if len(results) == 0:
             print("No matching records found.")
@@ -190,3 +193,35 @@ class LibrarySearch:
             print()
 
         return results
+
+    # Lets the user sign out a record they searched, returns the item ID or None if cancelled
+    def signOutPrompt(self, records):
+        userChoice = ''
+        while userChoice not in ['y', 'n']:
+            print("Would you like to sign out one of these records? (y/n)")
+            userChoice = input("> ").strip().lower()
+
+        # Get the index of the user's choice
+        if userChoice == 'y':
+            isValid = False
+            while not isValid:
+                i = 1
+                for itemID, title, _, publicationDate, authorFirstName, authorLastName, returnDate, dueDate in records:
+                    msg = f'Index {i}. {itemID}:{title} - {authorLastName}, {authorFirstName} - Published on {publicationDate} '
+                    if returnDate is not None:
+                        msg += '- This item is available'
+                    else:
+                        msg += f'- This item is not available, due date {returnDate}'
+
+                    print(msg)
+                    i += 1
+
+                print("Enter the index number of the item you would like to check out or type 'cancel' to cancel") 
+                userChoice = input("> ").strip().lower()
+                isValid = userChoice.isdigit() and int(userChoice)-1 >= 0 and int(userChoice)-1 < len(records)
+                if userChoice == 'cancel':
+                    return None
+
+            return records[int(userChoice)-1]
+        
+

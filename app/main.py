@@ -39,7 +39,7 @@ registrationSystem = Registration(con)
 eventSystem = Event(con)
 
 while running:
-    print("Enter 1 to search library database")
+    print("Enter 1 to search library database and sign out records")
     if not loggedIn:
         print("Enter 2 to sign in")
         print("Enter 3 to register for a library card")
@@ -59,7 +59,20 @@ while running:
 
     if userInput == '1':
         if librarySearch.gatherSearchTerms() is not None:
-            librarySearch.search()
+            records = librarySearch.search()
+
+            # prompt the user to sign out an item 
+            if loggedIn and account and records and len(records) > 0:
+                signOutRequest = librarySearch.signOutPrompt(records)
+
+                # return date is None if the item is not available i.e. someone has loaned it and not yet returned it
+                if signOutRequest and signOutRequest[6] is None:
+                    print("This item is not available right now.")
+                elif signOutRequest:
+                    loanSystem.signOutItem(account.cardNumber, signOutRequest[0])
+            elif not loggedIn:
+                print("Sign in or create a membership to sign out books")
+
     if not loggedIn:
         if userInput == '2':
             firstName = input("Enter your first name: ")
@@ -127,7 +140,6 @@ while running:
                 if not isValid:
                     continue
 
-                # print(loans[int(selectedLoan)-1])
                 selectedLoan = loans[int(selectedLoan)-1]
                 print("You selected", selectedLoan[1], "what would you like to do?")
                 selectedChoice = ""
@@ -139,6 +151,7 @@ while running:
                     selectedChoice = input('> ').strip().lower()    
 
                 if selectedChoice == '1': # Return an item
+                    print(selectedLoan)
                     loanSystem.returnItem(account.cardNumber, selectedLoan[0], selectedLoan[2])
                 elif selectedChoice == '2': # Renew an item
                     print("Your item has successfully been renewed for 1 week")

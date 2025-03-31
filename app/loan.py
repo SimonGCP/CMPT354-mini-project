@@ -6,7 +6,7 @@ It contains the logic for making new loans, returning,
 and renewing loans.
 '''
 
-from utils import getCurDate
+from utils import getCurDate, getTodayPlusN
 
 class Loan:
     def __init__(self, con):
@@ -66,5 +66,19 @@ class Loan:
         '''
         print("returning on date", getCurDate())
         cursor.execute(query, (getCurDate(), libraryCardNumber, itemID, loanDateTime))
+        self.con.commit()
 
-        return True
+    def signOutItem(self, libraryCardNumber, itemID):
+        cursor = self.con.cursor()
+
+        # loanCard, itemID, loanDateTime, dueDate, returnDate
+        query = '''
+            INSERT INTO Loan(loanCard, itemID, dueDate)
+            VALUES (?, ?, ?)
+        '''
+
+        loanDateTime = getCurDate()
+        loanDueDate = getTodayPlusN(14) 
+        cursor.execute(query, (libraryCardNumber, itemID, loanDueDate))
+
+        self.con.commit()

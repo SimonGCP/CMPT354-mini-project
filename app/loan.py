@@ -123,3 +123,16 @@ class Loan:
         self.con.commit()
         print(f"\nSuccessfully renewed this record for {renewalLength} days")
         print(f"Item is now due on {newDueDate}")
+
+    def removeLoan(self, libraryCardNumber, itemID):
+        cursor = self.con.cursor()
+
+        query = '''
+            DELETE FROM Loan
+            WHERE loanCard = ?
+            AND itemID = ?
+        '''
+        cursor.execute(query, (libraryCardNumber, itemID)) 
+        self.con.commit()
+        print(f"\nSuccessfully removed this record")
+

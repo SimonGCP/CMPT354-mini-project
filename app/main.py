@@ -52,7 +52,7 @@ while running:
         print("Enter 5 to see upcoming library events")
         print("Enter 6 to donate an item to the library")
         if account.hasPrivileges:
-            print("Press 7 to search transaction history")
+            print("Press 7 to search a users's transaction history")
             print("Press 8 to organize an event in a social room")
     print('Enter "exit" to leave')
 
@@ -203,7 +203,53 @@ while running:
 
         elif account.hasPrivileges:
             if userInput == '7': # search transaction history
-                pass
+                #TODO track history of loans
+                
+                cardNum = input("Enter user's card number: ").strip()
+                print("User's loans:")
+
+                selectedLoan = ""
+                loans = loanSystem.getAllLoans(cardNum)
+                
+                if len(loans) == 0:
+                    print("No current loans")
+                else:
+                    isValid = False
+                    while not isValid:
+                        print()
+                        i = 1 
+                        for itemID, title, loanDate, dueDate in loans:
+                            print(f"{i}. {itemID}:{title} borrowed on {loanDate}, due on {dueDate}") 
+                            i += 1
+                        print()
+
+                        print("Enter the number next to a loan to select it or type 'cancel'")
+                        selectedLoan = input("> ").strip().lower()
+                        if selectedLoan == 'cancel':
+                            break 
+                        isValid = selectedLoan.isdigit() and int(selectedLoan)-1 >= 0 and int(selectedLoan)-1 < len(loans)
+
+                    # if interaction is cancelled
+                    if not isValid:
+                        continue
+
+                    selectedLoan = loans[int(selectedLoan)-1]
+                    print("You selected", selectedLoan[1], "what would you like to do?")
+                    selectedChoice = ""
+                    while selectedChoice not in ['1', '2', '3', 'cancel']:
+                        print("What would you like to do?")
+                        print("Enter 1 to return item")
+                        print("Enter 2 to renew item")
+                        print("Enter 3 to remove loan from history")
+                        print("Enter 'cancel' to cancel")
+                        selectedChoice = input('> ').strip().lower()    
+
+                    if selectedChoice == '1': # Return an item
+                        loanSystem.returnItem(cardNum, selectedLoan[0], selectedLoan[2])
+                    elif selectedChoice == '2': # Renew an item
+                        loanSystem.renewItem(cardNum, selectedLoan[0])
+                    elif selectedChoice == '3': # Remove history
+                        loanSystem.removeLoan(cardNum, selectedLoan[0])
 
             if userInput == '8': # create event
                 #list out all the available rooms

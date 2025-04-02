@@ -258,7 +258,7 @@ while running:
                 dateTime = input("Enter Event dateTime (YYYY-MM-DD HH:MM:SS): ").strip()
                 roomNum = input("Enter room number: ").strip()
                 maxAttendees = input("Enter max number of Attendees: ").strip()
-                duration = input("Enter duration of event: ").strip()
+                duration = input("Enter duration of event (hours): ").strip()
                 deadline = input("Enter registration deadline (YYYY-MM-DD HH:MM:SS): ").strip()
                 desc = input("Enter Event description: ").strip()
 

@@ -110,8 +110,6 @@ class LibrarySearch:
 
     # Search the library database based on inputted search terms
     def search(self):
-        print(self.searchTerms)
-
         # Do not search if no search terms provided
         if len(self.searchTerms.keys()) == 0:
             print("Search error - no search terms provided")

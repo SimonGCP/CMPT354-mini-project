@@ -29,7 +29,10 @@ class Fine:
                 print("\nYou have no outstanding fines.\n")
             else:
                 print()
-                for dateIssued, amount in fines:
+                for fine in fines:
+                    amount = fine['amount']
+                    dateIssued = fine['dateTimeIssued']
+
                     dollarAmount = '$' + '{0:.2f}'.format(amount)
                     print(f"Fine issued on {dateIssued}: Amount due {dollarAmount}")
                 print("See a system administrator or a library to clear your fines.\n")

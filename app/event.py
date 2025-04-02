@@ -8,6 +8,7 @@ and displaying events
 '''
 
 from utils import *
+import sqlite3
 
 class Event:
     def __init__(self, con):

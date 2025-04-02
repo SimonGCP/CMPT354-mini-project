@@ -170,7 +170,6 @@ class LibrarySearch:
             query += " AND "
 
         query = query[:-5] + 'AND isFutureAcq=0 GROUP BY LibraryItem.itemID;'
-        print(query)
         res = cursor.execute(query)
 
         results = []
@@ -245,7 +244,7 @@ class LibrarySearch:
     def donateBook(self):
         pubType = ""
         while pubType not in ["book", "journal", "magazine", "cancel"]:
-            print("What type of record would you like to donate? (book, record, journal), type 'cancel' to cancel")
+            print("What type of record would you like to donate? (book, magazine, journal), type 'cancel' to cancel")
             pubType = input("> ").strip()
             if pubType not in ["book", "journal", "magazine", "cancel"]:
                 print("Invalid item type")
